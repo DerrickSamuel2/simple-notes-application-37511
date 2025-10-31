@@ -1,47 +1,66 @@
-import React, { useState, useEffect } from 'react';
-import logo from './logo.svg';
+import React, { useEffect, useState } from 'react';
 import './App.css';
+import './index.css';
+import Sidebar from './components/Sidebar';
+import Main from './components/Main';
+import { useNotes } from './hooks/useNotes';
 
 // PUBLIC_INTERFACE
 function App() {
+  /**
+   * Main application component for Simple Notes Application.
+   * Applies theme and renders a sidebar with notes list and main editor panel.
+   */
   const [theme, setTheme] = useState('light');
 
-  // Effect to apply theme to document element
+  const {
+    notes,
+    selectedId,
+    selectedNote,
+    loading,
+    error,
+    search,
+    onSearchChange,
+    setSelectedId,
+    addNote,
+    removeNote,
+    applyLocalUpdate
+  } = useNotes();
+
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
   }, [theme]);
 
-  // PUBLIC_INTERFACE
-  const toggleTheme = () => {
-    setTheme(prevTheme => prevTheme === 'light' ? 'dark' : 'light');
-  };
+  const toggleTheme = () => setTheme((t) => (t === 'light' ? 'dark' : 'light'));
 
   return (
-    <div className="App">
-      <header className="App-header">
-        <button 
-          className="theme-toggle" 
-          onClick={toggleTheme}
-          aria-label={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
-        >
-          {theme === 'light' ? '🌙 Dark' : '☀️ Light'}
-        </button>
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <p>
-          Current theme: <strong>{theme}</strong>
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <div className="App app-layout">
+      <div className="topbar">
+        <div className="logo">🗒️ Simple Notes</div>
+        <div className="topbar-actions">
+          <button className="btn btn-secondary" onClick={toggleTheme} aria-label="Toggle theme">
+            {theme === 'light' ? '🌙 Dark' : '☀️ Light'}
+          </button>
+        </div>
+      </div>
+
+      <div className="content">
+        <Sidebar
+          notes={notes}
+          selectedId={selectedId}
+          onSelect={setSelectedId}
+          onDelete={removeNote}
+          search={search}
+          onSearchChange={onSearchChange}
+          onNew={addNote}
+        />
+        <Main
+          note={selectedNote}
+          onPatch={applyLocalUpdate}
+        />
+      </div>
+      {loading && <div className="toast info">Loading…</div>}
+      {error && <div className="toast error" role="alert">{error}</div>}
     </div>
   );
 }
